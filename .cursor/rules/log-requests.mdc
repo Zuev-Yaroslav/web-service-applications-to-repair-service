@@ -10,7 +10,7 @@ Every time you (the AI) receive a request to change code or perform a task:
 
    **Prompt:** [Full verbatim text of the user's request]
 
-   **Actions:** [Here, write your answer, following the format.]
+   **Actions:** [Here, write your full answer with actions, following the format.]
 
    ---
 3. Do this automatically without asking for permission for every new prompt.
