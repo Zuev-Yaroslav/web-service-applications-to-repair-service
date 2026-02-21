@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+Run console PHP command via docker exec -i repair_service_app <any commands>
+
+Always use ziggy vue.

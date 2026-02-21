@@ -1,5 +1,0 @@
----
-alwaysApply: true
----
-
-Run console command via docker exec -i repair_service_app <any commands>

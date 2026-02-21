@@ -68,3 +68,24 @@ Refactor UserSeeder. You only need to specify role_id in create. In factory(), s
 **Actions:** Refactored UserSeeder to create users with only role_id: User::factory()->count(5)->create(['role_id' => $dispatcherRoleId]) and User::factory()->count(20)->create(['role_id' => $masterRoleId]). Removed explicit name/email; factory generates them. Appended this log entry.
 
 ---
+**Date:** 2026-02-21 **Time:** 13:48:02
+
+**Prompt:** Create a form (client/phone/address/description) using the Inertia Vue Composition API. It should have a title "Create Request," text fields, and a create button. After the request is created, a "Created" message appears. Then create a RequestRecordController with a "create" method to display the creation form. In web.php, name the route "request-record.create" "/request-record/create." This controller also contains a store method. Create a RequestRecord/StoreRequest with the client_name, phone, address, and problem_text fields. Specify validation rules in it, based on the RequestRecord migration, to avoid database errors. Write the creation logic in Services/RecordRequest/RecordRequestService::store()
+
+**Actions:** Created App\Http\Requests\RequestRecord\StoreRequest with rules: client_name, phone, address required|string|max:255; problem_text required|string. Created App\Services\RecordRequest\RecordRequestService with store(StoreRequest) creating RequestRecord from validated data. Created RequestRecordController with create() rendering request-record/Create and passing session status, and store(StoreRequest) calling service and redirecting back with status 'Created'. Added routes GET request-record/create (request-record.create) and POST request-record (request-record.store). Built Vue page resources/js/pages/request-record/Create.vue with Composition API: title "Create Request," Form v-bind RequestRecordController.store.form(), fields client_name (Client), phone, address, problem_text (Description textarea), Create button, "Created." message when wasSuccessful or status === 'Created'. Ran wayfinder:generate --with-form. Added RequestRecordControllerTest (create page, store success, store validation). Ran Pint and full test suite (50 tests passed). Appended this log entry.
+
+---
+**Date:** 2026-02-21 **Time:** 14:43:37
+
+**Prompt:** Don't use AppLayout in request-record/Create.vue. Unauthorized users can create requests in the request creation form.
+
+**Actions:** Removed AppLayout from resources/js/pages/request-record/Create.vue. Replaced it with a standalone layout: a single root div with min-h-screen, header containing a Home link (for guest navigation), and main content with the Create Request form. Routes request-record.create and request-record.store have no auth middleware, so guests can already access the form. Ran RequestRecordControllerTest (3 tests passed). Appended this log entry.
+
+---
+**Date:** 2026-02-21 **Time:** 14:51:10
+
+**Prompt:** pages/request-record/Create.vue rename to pages/request-record/RequestRecordCreate.vue. Change this where it's used. In RequestRecordCreate.vue, use ziggy-js.
+
+**Actions:** Renamed Create.vue to RequestRecordCreate.vue. Updated RequestRecordController to render 'request-record/RequestRecordCreate' and RequestRecordControllerTest to assert component 'request-record/RequestRecordCreate'. Replaced Wayfinder imports (RequestRecordController, home) with ziggy-js: Home link uses route('home'), Form uses :action="route('request-record.store')" and method="post". Added request-record.create and request-record.store to ziggy.d.ts for TypeScript. Ran RequestRecordControllerTest (3 tests passed).
+
+---
