@@ -6,9 +6,11 @@ Every time you (the AI) receive a request to change code or perform a task:
 1. Before executing the task, check for the existence of a `PROMPTS.md` file in the root. If it doesn't exist, create it.
 2. Always get the current timestamp by executing a PHP command via MCP (e.g., `php -r "echo now();"` or `date`).
 3. Append a new entry to `PROMPTS.md` with the following format:
-   ---
    **Date:** YYYY-MM-DD **Time:** HH:mm:ss
+
    **Prompt:** [Full verbatim text of the user's request]
-   **Actions:** [Briefly describe what actions you performed]
+
+   **Actions:** [Here, write your answer, following the format.]
+
    ---
 3. Do this automatically without asking for permission for every new prompt.
