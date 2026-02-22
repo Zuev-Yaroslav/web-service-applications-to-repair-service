@@ -4,7 +4,7 @@ alwaysApply: true
 # Logging Protocol
 Every time you (the AI) receive a request to change code or perform a task:
 1. Before executing the task, check for the existence of a `PROMPTS.md` file in the root. If it doesn't exist, create it.
-2. Always get the current timestamp by executing a PHP command via MCP (e.g., `date`).
+2. Always get the current timestamp by executing a PHP command via MCP (e.g., `date`). If you can't get the exact time, try several times.
 3. Append a new entry to `PROMPTS.md` with the following format:
    **Date:** YYYY-MM-DD **Time:** HH:mm:ss
 

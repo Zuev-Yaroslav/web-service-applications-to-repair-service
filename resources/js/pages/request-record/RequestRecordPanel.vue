@@ -42,7 +42,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const statusFilter = ref<string | null>(props.statusFilter || null);
-const selectedMasters = ref<Record<number, number>>({});
 
 const filteredRecords = computed(() => {
     if (!statusFilter.value) {
@@ -82,10 +81,10 @@ const filterOptions = [
     { label: 'Canceled', value: 'canceled' },
 ];
 
-const updateStatus = (recordId: number, status: string) => {
+const updateStatus = (recordId: number, status: object) => {
     router.patch(
         `/request-record-panel/${recordId}/status`,
-        { status },
+        { status: status.value },
         {
             preserveState: true,
             preserveScroll: true,
@@ -127,9 +126,14 @@ const finish = (recordId: number) => {
 };
 
 const applyFilter = () => {
+    const queryParams: Record<string, string | null> = {};
+    if (statusFilter.value !== null) {
+        queryParams.status = statusFilter.value;
+    }
+
     router.get(
         route('request-record-panel.index'),
-        { status: statusFilter.value },
+        queryParams,
         {
             preserveState: true,
             preserveScroll: true,
@@ -215,17 +219,26 @@ const applyFilter = () => {
                                 <div class="space-y-2">
                                     <Select
                                         v-if="masters"
-                                        v-model="selectedMasters[record.id]"
+                                        :model-value="record.assigned_to"
                                         :options="masters"
                                         optionLabel="name"
                                         optionValue="id"
                                         placeholder="Select master"
                                         class="w-full"
-                                    />
+                                        @update:model-value="(value) => {
+                                            if (value) {
+                                                assignToMaster(record.id, value);
+                                            }
+                                        }"
+                                    >
+                                        <template #option="slotProps">
+                                            <div>{{ slotProps.option.name }} ({{ slotProps.option.email }})</div>
+                                        </template>
+                                    </Select>
                                     <Button
-                                        v-if="masters && selectedMasters[record.id]"
+                                        v-if="masters && record.assigned_to"
                                         size="sm"
-                                        @click="assignToMaster(record.id, selectedMasters[record.id])"
+                                        @click="assignToMaster(record.id, record.assigned_to)"
                                     >
                                         Assign
                                     </Button>

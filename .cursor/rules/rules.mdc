@@ -6,4 +6,8 @@ Run console PHP and npm command via docker exec -i repair_service_app <any comma
 
 In the controller, implement all logic in a separate Service class.
 
+To output Model data, always use Resource.
+
+To implement filtering, study the files in the [Filters] fi (./app/Filters/).
+
 Always use ziggy vue. After creating and renaming of route run `php artisan ziggy:generate --types`

@@ -26,8 +26,7 @@ class UpdateStatusRequest extends FormRequest
         return [
             'status' => [
                 'required',
-                Rule::enum(RequestRecordStatus::class),
-                Rule::in([RequestRecordStatus::Assigned->value, RequestRecordStatus::Canceled->value]),
+                Rule::enum(RequestRecordStatus::class)->only([RequestRecordStatus::Assigned, RequestRecordStatus::Canceled]),
             ],
         ];
     }
