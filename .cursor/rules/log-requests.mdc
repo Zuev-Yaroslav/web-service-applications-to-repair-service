@@ -8,7 +8,7 @@ Every time you (the AI) receive a request to change code or perform a task:
 3. Append a new entry to `PROMPTS.md` with the following format:
    **Date:** YYYY-MM-DD **Time:** HH:mm:ss
 
-   **Prompt:** [Full verbatim text of the user's request]
+   **Prompt:** [Full text of the user's request]
 
    **Actions:** [Here, write your full answer with actions, following the format.]
 

@@ -2,6 +2,8 @@
 alwaysApply: true
 ---
 
-Run console PHP command via docker exec -i repair_service_app <any commands>
+Run console PHP and npm command via docker exec -i repair_service_app <any commands>
 
-Always use ziggy vue.
+In the controller, implement all logic in a separate Service class.
+
+Always use ziggy vue. After creating and renaming of route run `php artisan ziggy:generate --types`

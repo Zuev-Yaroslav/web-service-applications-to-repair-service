@@ -89,3 +89,40 @@ Refactor UserSeeder. You only need to specify role_id in create. In factory(), s
 **Actions:** Renamed Create.vue to RequestRecordCreate.vue. Updated RequestRecordController to render 'request-record/RequestRecordCreate' and RequestRecordControllerTest to assert component 'request-record/RequestRecordCreate'. Replaced Wayfinder imports (RequestRecordController, home) with ziggy-js: Home link uses route('home'), Form uses :action="route('request-record.store')" and method="post". Added request-record.create and request-record.store to ziggy.d.ts for TypeScript. Ran RequestRecordControllerTest (3 tests passed).
 
 ---
+**Date:** 2026-02-22 **Time:** 00:00:00
+
+**Prompt:** @.cursor/rules/laravel-boost.mdc @.cursor/rules/rules.mdc @.cursor/rules/log-requests.mdc 
+Install primevue to use select.
+Create a dispatch panel displaying a list of requests using your own AdminLayout.
+RequestRecord list as a table with the following fields:
+1 Client
+2 Phone
+3 Address
+4 ProblemText
+5 Status: Color the cell depending on the status
+New: Light blue
+Assigned: Blue
+In Progress: Yellow
+Done: Green
+Canceled: Dark gray
+In this <Select> column, you can change the status to canceled or assigned.
+6 AssignedTo: A list of selectable "masters" with an assign button underneath. Changes the request status to assigned.
+
+Filter requests by status.
+_________
+Create a master panel displaying a list of authorized master requests using the previous AdminLayout.
+
+RequestRecord list as a table with the following fields:
+1 Client
+2 Phone
+3 Address
+4 ProblemText
+5 Status
+6 "Assign to work" button. When clicked, the status changes strictly from assigned to in_progress.
+7. "Finish" button. When clicked, the status changes strictly from in_progress to done.
+
+Both panels should be implemented in the same Vue., checking the user's role.
+
+**Actions:** Installed PrimeVue and PrimeIcons via npm. Configured PrimeVue in resources/js/app.ts with Aura theme preset. Updated HandleInertiaRequests middleware to include user role in auth.user. Created RequestRecordPanelController with index() (role-based filtering: dispatcher sees all with status filter, master sees assigned/in_progress assigned to them), updateStatus() (dispatcher only, canceled/assigned), assign() (dispatcher only, sets assigned_to and status to assigned), startWork() (master only, assigned -> in_progress), finish() (master only, in_progress -> done). Created UpdateStatusRequest and AssignRequest form request classes with authorization and validation. Created AdminLayout component using AppSidebarLayout. Created RequestRecordPanel.vue component with role-based rendering: dispatcher view shows status filter, status select (canceled/assigned), master select with assign button; master view shows "Assign to work" and "Finish" buttons. Status colors: new (light blue), assigned (blue), in_progress (yellow), done (green), canceled (dark gray). Added routes: GET request-record-panel (index), PATCH request-record-panel/{requestRecord}/status, POST request-record-panel/{requestRecord}/assign, POST request-record-panel/{requestRecord}/start-work, POST request-record-panel/{requestRecord}/finish, all with auth middleware. Updated User type in auth.ts to include role. Ran Pint formatter. Appended this log entry.
+
+---
