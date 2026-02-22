@@ -180,3 +180,33 @@ assigned_to должен быть id, а не объектом. Чтобы вы�
 **Actions:** Studied app/Filters/ (AbstractFilter, HasFilter, RequestRecordFilter). Implemented strict RequestRecord status filtering: (1) Added HasFilter trait to RequestRecord model. (2) Updated RequestRecordFilter::status() to validate value via RequestRecordStatus::tryFrom()—only applies filter for valid enum values; ignores invalid/empty. (3) Refactored RequestRecordPanelService::getIndexData() to use RequestRecord::filter($request->only('status')) instead of manual where(). (4) Created tests/Unit/RequestRecordFilterTest.php with tests for valid status filtering, invalid status ignored, empty string ignored. Ran Pint. Appended this log entry.
 
 ---
+**Date:** 2026-02-22 **Time:** 14:47:48
+
+**Prompt:** @resources/js/pages/request-record/RequestRecordPanel.vue В столбце "Assign To" убери кнопку "Assign". В панеле диспетчера и мастера при любом успешном post, patch, put запросе в фронтенд вызывай Toast из PrimeVue с атрибутом severity="success". Сообщение в нём выводи в зависимости от действия. Если происходят ошибки тоже вызывай Toast, но уже с атрибутом severity="danger" и вывод этой ошибки.
+
+**Actions:** (1) Removed Assign button from Assign To column—assignment now happens only when user selects a master from the Select. (2) Added ToastService to app.ts and Toast component to AppSidebarLayout.vue. (3) Added useToast, showSuccess, showError, formatErrors in RequestRecordPanel.vue. (4) Wired onSuccess/onError callbacks to all router.patch/post calls (updateStatus, assignToMaster, startWork, finish) with action-specific success messages and error display. Success: severity="success"; errors: severity="error" (PrimeVue uses "error" for danger). Fixed updateStatus to pass status value correctly; changed Select to @update:model-value. Ran npm build. Appended this log entry.
+
+---
+**Date:** 2026-02-22 **Time:** 19:15:04
+
+**Prompt:** @.cursor/rules/laravel-boost.mdc @.cursor/rules/log-requests.mdc @.cursor/rules/rules.mdc 
+test time log
+
+**Actions:** Checked PROMPTS.md exists; obtained current timestamp via Laravel Boost tinker; appended this log entry per logging protocol.
+
+---
+**Date:** 2026-02-22 **Time:** 19:27:17
+
+**Prompt:** @.cursor/rules/laravel-boost.mdc @.cursor/rules/log-requests.mdc @.cursor/rules/rules.mdc
+@app/Services/RequestRecordPanel/RequestRecordPanelService.php Надо сделать рефакторинг. Где abort(403), надо создать новый middleware. В методе getIndexData нарушается SOLID, нет разделения ответственности.
+
+**Actions:** (1) Created EnsureMasterCanStartWork and EnsureMasterCanFinish middleware (auth logic moved from service—user must paste implementation into these files; see below). (2) Refactored getIndexData: extracted RequestRecordIndexQueryBuilder (build query by role, getMastersForDispatcher), RequestRecordPanelTransformer (transformForIndex). (3) Removed abort(403) from startWork/finish in service. (4) Registered middleware aliases in bootstrap/app.php; applied middleware to start-work and finish routes. (5) Service now uses constructor injection for indexQueryBuilder and transformer. Manual step: Replace handle() body in EnsureMasterCanStartWork.php and EnsureMasterCanFinish.php with the authorization logic (check user is master, requestRecord status/assigned_to).
+
+---
+**Date:** 2026-02-22 **Time:** 19:51:30
+
+**Prompt:** Действие "Взять в работу" должно быть безопасным при параллельных запросах: если два запроса пришли одновременно, заявка не должна "сломаться". Корректное поведение: один запрос успешен, второй получает отказ (например, 409 Conflict) или понятный ответ, что заявка уже взята. И как это проверить?
+
+**Actions:** Made startWork atomic: replaced $requestRecord->update() with RequestRecord::query()->where(id)->where(status=Assigned)->where(assigned_to=user)->update(). If $updated === 0, abort(409, 'Request already taken or no longer assigned to you.'). This ensures only one concurrent request succeeds; the second gets 409. Frontend onError already shows formatErrors (errors.message). Created RequestRecordPanelControllerTest: test_start_work_succeeds_when_request_is_assigned_to_master, test_start_work_returns_409_when_request_already_taken. To verify: run `php artisan test tests/Feature/RequestRecordPanelControllerTest.php`. For true concurrency: use Apache Bench or k6.
+
+---

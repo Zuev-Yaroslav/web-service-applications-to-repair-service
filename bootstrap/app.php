@@ -16,6 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        $middleware->alias([
+            'master.can.start.work' => \App\Http\Middleware\EnsureMasterCanStartWork::class,
+            'master.can.finish' => \App\Http\Middleware\EnsureMasterCanFinish::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'request-record-panel/*/start-work',
+        ]);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

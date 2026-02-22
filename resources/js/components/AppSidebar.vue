@@ -30,9 +30,9 @@ const footerNavItems: NavItem[] = [];
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg">
+                    <div class="flex items-center justify-between p-2 gap-2">
                         <AppLogo />
-                    </SidebarMenuButton>
+                    </div>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>

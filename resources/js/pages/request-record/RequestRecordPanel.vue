@@ -1,10 +1,29 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useToast } from 'primevue/usetoast';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Button } from '@/components/ui/button';
 import Select from 'primevue/select';
 import type { BreadcrumbItem } from '@/types';
+
+const toast = useToast();
+
+const showSuccess = (message: string): void => {
+    toast.add({ severity: 'success', summary: message, life: 3000 });
+};
+
+const showError = (message: string): void => {
+    toast.add({ severity: 'error', summary: message, life: 5000 });
+};
+
+const formatErrors = (errors: Record<string, unknown>): string => {
+    if (errors?.message && typeof errors.message === 'string') {
+        return errors.message;
+    }
+    const messages = Object.values(errors).flat().filter((m): m is string => typeof m === 'string');
+    return messages.length > 0 ? messages.join(' ') : 'An error occurred';
+};
 
 type RequestRecord = {
     id: number;
@@ -81,13 +100,15 @@ const filterOptions = [
     { label: 'Canceled', value: 'canceled' },
 ];
 
-const updateStatus = (recordId: number, status: object) => {
+const updateStatus = (recordId: number, status: string) => {
     router.patch(
         `/request-record-panel/${recordId}/status`,
-        { status: status.value },
+        { status },
         {
             preserveState: true,
             preserveScroll: true,
+            onSuccess: () => showSuccess('Status updated'),
+            onError: (errors) => showError(formatErrors(errors)),
         }
     );
 };
@@ -99,6 +120,8 @@ const assignToMaster = (recordId: number, masterId: number) => {
         {
             preserveState: true,
             preserveScroll: true,
+            onSuccess: () => showSuccess('Assigned to master'),
+            onError: (errors) => showError(formatErrors(errors)),
         }
     );
 };
@@ -110,6 +133,8 @@ const startWork = (recordId: number) => {
         {
             preserveState: true,
             preserveScroll: true,
+            onSuccess: () => showSuccess('Work started'),
+            onError: (errors) => showError(formatErrors(errors)),
         }
     );
 };
@@ -121,6 +146,8 @@ const finish = (recordId: number) => {
         {
             preserveState: true,
             preserveScroll: true,
+            onSuccess: () => showSuccess('Request completed'),
+            onError: (errors) => showError(formatErrors(errors)),
         }
     );
 };
@@ -212,37 +239,28 @@ const applyFilter = () => {
                                     optionValue="value"
                                     placeholder="Select status"
                                     class="w-full"
-                                    @change="(value) => updateStatus(record.id, value)"
+                                    @update:model-value="(value) => value && updateStatus(record.id, value)"
                                 />
                             </td>
                             <td v-if="role === 'dispatcher'" class="border p-3">
-                                <div class="space-y-2">
-                                    <Select
-                                        v-if="masters"
-                                        :model-value="record.assigned_to"
-                                        :options="masters"
-                                        optionLabel="name"
-                                        optionValue="id"
-                                        placeholder="Select master"
-                                        class="w-full"
-                                        @update:model-value="(value) => {
-                                            if (value) {
-                                                assignToMaster(record.id, value);
-                                            }
-                                        }"
-                                    >
-                                        <template #option="slotProps">
-                                            <div>{{ slotProps.option.name }} ({{ slotProps.option.email }})</div>
-                                        </template>
-                                    </Select>
-                                    <Button
-                                        v-if="masters && record.assigned_to"
-                                        size="sm"
-                                        @click="assignToMaster(record.id, record.assigned_to)"
-                                    >
-                                        Assign
-                                    </Button>
-                                </div>
+                                <Select
+                                    v-if="masters"
+                                    :model-value="record.assigned_to"
+                                    :options="masters"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    placeholder="Select master"
+                                    class="w-full"
+                                    @update:model-value="(value) => {
+                                        if (value) {
+                                            assignToMaster(record.id, value);
+                                        }
+                                    }"
+                                >
+                                    <template #option="slotProps">
+                                        <div>{{ slotProps.option.name }} ({{ slotProps.option.email }})</div>
+                                    </template>
+                                </Select>
                             </td>
                             <td v-if="role === 'master'" class="border p-3">
                                 <div class="flex gap-2">

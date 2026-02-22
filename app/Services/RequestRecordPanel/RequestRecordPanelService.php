@@ -6,54 +6,30 @@ use App\Enums\RequestRecordStatus;
 use App\Http\Requests\RequestRecord\AssignRequest;
 use App\Http\Requests\RequestRecord\UpdateStatusRequest;
 use App\Models\RequestRecord;
-use App\Models\Role;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class RequestRecordPanelService
 {
+    public function __construct(
+        private RequestRecordIndexQueryBuilder $indexQueryBuilder,
+        private RequestRecordPanelTransformer $transformer
+    ) {}
+
     /**
-     * @return array{requestRecords: \Illuminate\Support\Collection<int, array>, masters: Collection<int, User>|null, role: string, statusFilter: string|null}
+     * @return array{requestRecords: \Illuminate\Support\Collection<int, array>, masters: \Illuminate\Support\Collection<int, \App\Models\User>|null, role: string, statusFilter: string|null}
      */
     public function getIndexData(Request $request): array
     {
         $user = $request->user()->load('role');
         $role = $user->role->name;
 
-        $query = RequestRecord::query()->with(['assignedTo']);
+        $query = $this->indexQueryBuilder->build($request, $role);
+        $requestRecords = $query->get();
 
-        if ($role === 'dispatcher') {
-            $query->filter($request->only('status'));
-        } elseif ($role === 'master') {
-            // Master sees assigned and in_progress requests assigned to them
-            $query->where('assigned_to', $user->id)
-                ->whereIn('status', [RequestRecordStatus::Assigned, RequestRecordStatus::InProgress]);
-        }
-
-        $requestRecords = $query->latest()->get();
-
-        // Transform request records to ensure assigned_to is ID and assigned_to_user is the user object
-        $transformedRecords = $requestRecords->map(function (RequestRecord $record) {
-            $data = $record->toArray();
-            // Ensure assigned_to is just the ID (not the relation)
-            $data['assigned_to'] = $record->assigned_to;
-            // Add assigned_to_user with user information
-            $data['assigned_to_user'] = $record->assignedTo ? [
-                'id' => $record->assignedTo->id,
-                'name' => $record->assignedTo->name,
-            ] : null;
-            return $data;
-        });
-
-        $masters = null;
-        if ($role === 'dispatcher') {
-            $masterRole = Role::query()->where('name', 'master')->first();
-            $masters = $masterRole ? User::query()->where('role_id', $masterRole->id)->get() : collect();
-        }
+        $masters = $role === 'dispatcher' ? $this->indexQueryBuilder->getMastersForDispatcher() : null;
 
         return [
-            'requestRecords' => $transformedRecords,
+            'requestRecords' => $this->transformer->transformForIndex($requestRecords),
             'masters' => $masters,
             'role' => $role,
             'statusFilter' => $request->get('status'),
@@ -79,23 +55,19 @@ class RequestRecordPanelService
     {
         $user = $request->user();
 
-        if ($requestRecord->status !== RequestRecordStatus::Assigned || $requestRecord->assigned_to !== $user->id) {
-            abort(403, 'You can only start work on assigned requests assigned to you.');
-        }
+        $updated = RequestRecord::query()
+            ->where('id', $requestRecord->id)
+            ->where('status', RequestRecordStatus::Assigned)
+            ->where('assigned_to', $user->id)
+            ->update(['status' => RequestRecordStatus::InProgress]);
 
-        $requestRecord->update([
-            'status' => RequestRecordStatus::InProgress,
-        ]);
+        if ($updated === 0) {
+            abort(409, 'Request already taken or no longer assigned to you.');
+        }
     }
 
     public function finish(Request $request, RequestRecord $requestRecord): void
     {
-        $user = $request->user();
-
-        if ($requestRecord->status !== RequestRecordStatus::InProgress || $requestRecord->assigned_to !== $user->id) {
-            abort(403, 'You can only finish requests that are in progress and assigned to you.');
-        }
-
         $requestRecord->update([
             'status' => RequestRecordStatus::Done,
         ]);

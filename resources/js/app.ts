@@ -3,6 +3,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import PrimeVue from 'primevue/config';
+import ToastService from 'primevue/toastservice';
 import Aura from '@primeuix/themes/aura';
 import '../css/app.css';
 import 'primeicons/primeicons.css';
@@ -21,6 +22,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(ToastService)
             .use(PrimeVue, {
                 theme: {
                     preset: Aura,

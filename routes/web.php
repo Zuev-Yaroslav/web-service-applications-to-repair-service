@@ -29,8 +29,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('request-record-panel/{requestRecord}/assign', [RequestRecordPanelController::class, 'assign'])
         ->name('request-record-panel.assign');
     Route::post('request-record-panel/{requestRecord}/start-work', [RequestRecordPanelController::class, 'startWork'])
+        ->middleware('master.can.start.work')
         ->name('request-record-panel.start-work');
     Route::post('request-record-panel/{requestRecord}/finish', [RequestRecordPanelController::class, 'finish'])
+        ->middleware('master.can.finish')
         ->name('request-record-panel.finish');
 });
 
