@@ -24,11 +24,7 @@ class RequestRecordPanelService
         $query = RequestRecord::query()->with(['assignedTo']);
 
         if ($role === 'dispatcher') {
-            // Dispatcher sees all requests
-            $status = $request->get('status');
-            if ($status !== null && $status !== '') {
-                $query->where('status', $status);
-            }
+            $query->filter($request->only('status'));
         } elseif ($role === 'master') {
             // Master sees assigned and in_progress requests assigned to them
             $query->where('assigned_to', $user->id)

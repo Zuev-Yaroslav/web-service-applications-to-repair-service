@@ -173,3 +173,10 @@ assigned_to должен быть id, а не объектом. Чтобы вы�
 **Actions:** Removed "Github Repo" and "Documentation" items from footerNavItems array in AppSidebar.vue (set footerNavItems to empty array). Changed "Laravel Starter Kit" to "Web Service" in AppLogo.vue. Removed Link wrapper and as-child prop from SidebarMenuButton in AppSidebar.vue header, making AppLogo non-clickable. Changed href for "Requests to the repair service" from dashboard() to route('request-record-panel.index') using ziggy route function. Removed unused imports (BookOpen, Folder icons and dashboard route import). Ran ziggy:generate --types to update route types. Appended this log entry.
 
 ---
+**Date:** 2026-02-22 **Time:** 14:33:53
+
+**Prompt:** Изучи @app/Filters/ . У нас есть фильтрация, но надо по нему строго сделать фильтрацию RequestRecord по статусу.
+
+**Actions:** Studied app/Filters/ (AbstractFilter, HasFilter, RequestRecordFilter). Implemented strict RequestRecord status filtering: (1) Added HasFilter trait to RequestRecord model. (2) Updated RequestRecordFilter::status() to validate value via RequestRecordStatus::tryFrom()—only applies filter for valid enum values; ignores invalid/empty. (3) Refactored RequestRecordPanelService::getIndexData() to use RequestRecord::filter($request->only('status')) instead of manual where(). (4) Created tests/Unit/RequestRecordFilterTest.php with tests for valid status filtering, invalid status ignored, empty string ignored. Ran Pint. Appended this log entry.
+
+---

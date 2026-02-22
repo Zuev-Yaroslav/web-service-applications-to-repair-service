@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RequestRecordStatus;
+use App\Filters\HasFilter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ class RequestRecord extends Model
 {
     /** @use HasFactory<\Database\Factories\RequestRecordFactory> */
     use HasFactory;
+    use HasFilter;
 
     /**
      * The attributes that are mass assignable.
