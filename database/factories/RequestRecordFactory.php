@@ -38,4 +38,12 @@ class RequestRecordFactory extends Factory
             'status' => RequestRecordStatus::Assigned,
         ]);
     }
+
+    public function inProgress(User $user): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'assigned_to' => $user->id,
+            'status' => RequestRecordStatus::InProgress,
+        ]);
+    }
 }

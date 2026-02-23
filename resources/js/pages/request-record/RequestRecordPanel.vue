@@ -2,10 +2,14 @@
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import type { AxiosError } from 'axios';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Button } from '@/components/ui/button';
 import Select from 'primevue/select';
+import { api } from '@/lib/axios';
 import type { BreadcrumbItem } from '@/types';
+
+const reloadPage = () => router.reload({ preserveScroll: true });
 
 const toast = useToast();
 
@@ -23,6 +27,11 @@ const formatErrors = (errors: Record<string, unknown>): string => {
     }
     const messages = Object.values(errors).flat().filter((m): m is string => typeof m === 'string');
     return messages.length > 0 ? messages.join(' ') : 'An error occurred';
+};
+
+const handleError = (error: AxiosError<Record<string, unknown>>): void => {
+    const data = error.response?.data;
+    showError(data ? formatErrors(data as Record<string, unknown>) : error.message || 'An error occurred');
 };
 
 type RequestRecord = {
@@ -91,7 +100,7 @@ const statusOptions = [
     { label: 'Canceled', value: 'canceled' },
 ];
 
-const filterOptions = [
+const dispatcherFilterOptions = [
     { label: 'All', value: null },
     { label: 'New', value: 'new' },
     { label: 'Assigned', value: 'assigned' },
@@ -100,56 +109,51 @@ const filterOptions = [
     { label: 'Canceled', value: 'canceled' },
 ];
 
+const masterFilterOptions = [
+    { label: 'All', value: null },
+    { label: 'Assigned', value: 'assigned' },
+    { label: 'In Progress', value: 'in_progress' },
+    { label: 'Done', value: 'done' },
+];
+
+const filterOptions = computed(() =>
+    props.role === 'dispatcher' ? dispatcherFilterOptions : masterFilterOptions
+);
+
 const updateStatus = (recordId: number, status: string) => {
-    router.patch(
-        `/request-record-panel/${recordId}/status`,
-        { status },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => showSuccess('Status updated'),
-            onError: (errors) => showError(formatErrors(errors)),
-        }
-    );
+    api.patch(`/request-record-panel/${recordId}/status`, { status })
+        .then(() => {
+            showSuccess('Status updated');
+            reloadPage();
+        })
+        .catch(handleError);
 };
 
 const assignToMaster = (recordId: number, masterId: number) => {
-    router.post(
-        `/request-record-panel/${recordId}/assign`,
-        { master_id: masterId },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => showSuccess('Assigned to master'),
-            onError: (errors) => showError(formatErrors(errors)),
-        }
-    );
+    api.post(`/request-record-panel/${recordId}/assign`, { master_id: masterId })
+        .then(() => {
+            showSuccess('Assigned to master');
+            reloadPage();
+        })
+        .catch(handleError);
 };
 
 const startWork = (recordId: number) => {
-    router.post(
-        `/request-record-panel/${recordId}/start-work`,
-        {},
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => showSuccess('Work started'),
-            onError: (errors) => showError(formatErrors(errors)),
-        }
-    );
+    api.post(`/request-record-panel/${recordId}/start-work`)
+        .then(() => {
+            showSuccess('Work started');
+            reloadPage();
+        })
+        .catch(handleError);
 };
 
 const finish = (recordId: number) => {
-    router.post(
-        `/request-record-panel/${recordId}/finish`,
-        {},
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => showSuccess('Request completed'),
-            onError: (errors) => showError(formatErrors(errors)),
-        }
-    );
+    api.post(`/request-record-panel/${recordId}/finish`)
+        .then(() => {
+            showSuccess('Request completed');
+            reloadPage();
+        })
+        .catch(handleError);
 };
 
 const applyFilter = () => {
@@ -178,7 +182,7 @@ const applyFilter = () => {
                 <h1 class="text-2xl font-bold">
                     {{ role === 'dispatcher' ? 'Dispatch Panel' : 'Master Panel' }}
                 </h1>
-                <div v-if="role === 'dispatcher'" class="flex items-center gap-4">
+                <div class="flex items-center gap-4">
                     <Select
                         v-model="statusFilter"
                         :options="filterOptions"
@@ -192,13 +196,14 @@ const applyFilter = () => {
             </div>
 
             <div class="overflow-x-auto rounded-lg border">
-                <table class="w-full border-collapse">
+                <table class="table-fixed border-collapse min-w-[2000px]">
                     <thead>
                         <tr class="bg-muted">
+                            <th class="border p-3 text-left font-semibold">ID</th>
                             <th class="border p-3 text-left font-semibold">Client</th>
                             <th class="border p-3 text-left font-semibold">Phone</th>
                             <th class="border p-3 text-left font-semibold">Address</th>
-                            <th class="border p-3 text-left font-semibold">Problem</th>
+                            <th class="border p-3 text-left font-semibold w-100">Problem</th>
                             <th class="border p-3 text-left font-semibold">Status</th>
                             <th v-if="role === 'dispatcher'" class="border p-3 text-left font-semibold">
                                 Change Status
@@ -217,6 +222,7 @@ const applyFilter = () => {
                             :key="record.id"
                             class="hover:bg-muted/50"
                         >
+                            <td class="border p-3">{{ record.id }}</td>
                             <td class="border p-3">{{ record.client_name }}</td>
                             <td class="border p-3">{{ record.phone }}</td>
                             <td class="border p-3">{{ record.address }}</td>

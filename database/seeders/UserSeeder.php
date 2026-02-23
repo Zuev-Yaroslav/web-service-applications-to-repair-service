@@ -17,6 +17,6 @@ class UserSeeder extends Seeder
         $masterRoleId = Role::query()->where('name', 'master')->value('id');
 
         User::factory()->count(5)->create(['role_id' => $dispatcherRoleId]);
-        User::factory()->count(20)->create(['role_id' => $masterRoleId]);
+        User::factory()->count(10)->create(['role_id' => $masterRoleId]);
     }
 }

@@ -4,6 +4,8 @@ declare module 'ziggy-js' {
     "boost.browser-logs": [],
     "login": [],
     "login.store": [],
+    "register": [],
+    "register.store": [],
     "logout": [],
     "password.request": [],
     "password.reset": [
@@ -14,8 +16,6 @@ declare module 'ziggy-js' {
     ],
     "password.email": [],
     "password.update": [],
-    "register": [],
-    "register.store": [],
     "verification.notice": [],
     "verification.verify": [
         {
@@ -41,9 +41,37 @@ declare module 'ziggy-js' {
     "two-factor.recovery-codes": [],
     "two-factor.regenerate-recovery-codes": [],
     "home": [],
-    "dashboard": [],
     "request-record.create": [],
     "request-record.store": [],
+    "request-record-panel.index": [],
+    "request-record-panel.update-status": [
+        {
+            "name": "requestRecord",
+            "required": true,
+            "binding": "id"
+        }
+    ],
+    "request-record-panel.assign": [
+        {
+            "name": "requestRecord",
+            "required": true,
+            "binding": "id"
+        }
+    ],
+    "request-record-panel.start-work": [
+        {
+            "name": "requestRecord",
+            "required": true,
+            "binding": "id"
+        }
+    ],
+    "request-record-panel.finish": [
+        {
+            "name": "requestRecord",
+            "required": true,
+            "binding": "id"
+        }
+    ],
     "profile.edit": [],
     "profile.update": [],
     "profile.destroy": [],

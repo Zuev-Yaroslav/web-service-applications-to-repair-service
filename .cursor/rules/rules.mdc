@@ -2,7 +2,9 @@
 alwaysApply: true
 ---
 
-Run console PHP, npm and npx command via docker exec -i repair_service_app <any commands>
+Run console PHP, npm and npx command via `docker exec -i repair_service_app <any commands>`
+
+If editing is not possible, run the command `docker exec -i repair_service_app chmod -R 777 ./`
 
 In the controller, implement all logic in a separate Service class.
 

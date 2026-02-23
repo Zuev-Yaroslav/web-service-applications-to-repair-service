@@ -5,18 +5,18 @@ namespace App\Services\RequestRecordPanel;
 use App\Enums\RequestRecordStatus;
 use App\Http\Requests\RequestRecord\AssignRequest;
 use App\Http\Requests\RequestRecord\UpdateStatusRequest;
+use App\Http\Resources\RequestRecordResource;
 use App\Models\RequestRecord;
 use Illuminate\Http\Request;
 
 class RequestRecordPanelService
 {
     public function __construct(
-        private RequestRecordIndexQueryBuilder $indexQueryBuilder,
-        private RequestRecordPanelTransformer $transformer
+        private RequestRecordIndexQueryBuilder $indexQueryBuilder
     ) {}
 
     /**
-     * @return array{requestRecords: \Illuminate\Support\Collection<int, array>, masters: \Illuminate\Support\Collection<int, \App\Models\User>|null, role: string, statusFilter: string|null}
+     * @return array{requestRecords: \Illuminate\Http\Resources\Json\AnonymousResourceCollection, masters: \Illuminate\Support\Collection<int, \App\Models\User>|null, role: string, statusFilter: string|null}
      */
     public function getIndexData(Request $request): array
     {
@@ -29,7 +29,7 @@ class RequestRecordPanelService
         $masters = $role === 'dispatcher' ? $this->indexQueryBuilder->getMastersForDispatcher() : null;
 
         return [
-            'requestRecords' => $this->transformer->transformForIndex($requestRecords),
+            'requestRecords' => RequestRecordResource::collection($requestRecords)->resolve(),
             'masters' => $masters,
             'role' => $role,
             'statusFilter' => $request->get('status'),
@@ -51,7 +51,7 @@ class RequestRecordPanelService
         ]);
     }
 
-    public function startWork(Request $request, RequestRecord $requestRecord): void
+    public function startWork(Request $request, RequestRecord $requestRecord): bool
     {
         $user = $request->user();
 
@@ -61,9 +61,7 @@ class RequestRecordPanelService
             ->where('assigned_to', $user->id)
             ->update(['status' => RequestRecordStatus::InProgress]);
 
-        if ($updated === 0) {
-            abort(409, 'Request already taken or no longer assigned to you.');
-        }
+        return $updated > 0;
     }
 
     public function finish(Request $request, RequestRecord $requestRecord): void

@@ -210,3 +210,52 @@ test time log
 **Actions:** Made startWork atomic: replaced $requestRecord->update() with RequestRecord::query()->where(id)->where(status=Assigned)->where(assigned_to=user)->update(). If $updated === 0, abort(409, 'Request already taken or no longer assigned to you.'). This ensures only one concurrent request succeeds; the second gets 409. Frontend onError already shows formatErrors (errors.message). Created RequestRecordPanelControllerTest: test_start_work_succeeds_when_request_is_assigned_to_master, test_start_work_returns_409_when_request_already_taken. To verify: run `php artisan test tests/Feature/RequestRecordPanelControllerTest.php`. For true concurrency: use Apache Bench or k6.
 
 ---
+**Date:** 2026-02-22 **Time:** 20:38:43
+
+**Prompt:** Создай RequestRecordSeeder и RequestRecordFactory. Они создают 10 заявок каждому мастеру со статусом assigned и 10 неназначенных со статусом new.
+
+**Actions:** RequestRecordFactory already exists with assigned(User) state. Created RequestRecordSeeder: gets masters via Role where name=master, creates 10 RequestRecord per master using factory()->assigned($master), creates 10 unassigned new records via factory()->create() (default status New, assigned_to null). Updated DatabaseSeeder to call RequestRecordSeeder. Run `php artisan db:seed` to execute. Appended this log entry.
+
+---
+**Date:** 2026-02-23 **Time:** 23:14:47
+
+**Prompt:** @app/Http/Resources/RequestRecordResource.php туда перенеси из @app/Services/RequestRecordPanel/RequestRecordPanelTransformer.php . не надо использовать $data = parent::toArray($request); Обязательные поля: id, client_name, phone, address, problem_text, status, assigned_to, assigned_to_user => $this->assignedTo, created_at, updated_at
+
+**Actions:** RequestRecordPanelTransformer did not exist. Implemented RequestRecordResource::toArray() with required fields (id, client_name, phone, address, problem_text, status, assigned_to, assigned_to_user from assignedTo with id/name, created_at, updated_at); no parent::toArray. Set $wrap = null to avoid "data" wrapper in collection. Updated RequestRecordPanelService: removed transformer dependency, use RequestRecordResource::collection($requestRecords) instead. IndexQueryBuilder already loads assignedTo relation.
+
+---
+**Date:** 2026-02-23 **Time:** 23:35:00
+
+**Prompt:** После авторизации и регистрации переход на /request-record-panel. Убрать роут dashboard. Реализуй фильтрацию также и на Панели Мастера, только у него доступны Assigned, In Progress, Done. Не забывай, что на панели мастера должны быть свои заявки. @app/Services/RequestRecordPanel/RequestRecordPanelService.php Этот abort должен выводить на фронтенд в виде Toast.
+
+**Actions:** Fortify home→/request-record-panel; removed dashboard route; Master panel filtering (Assigned/InProgress/Done); startWork 409→Toast.
+
+---
+**Date:** 2026-02-23 **Time:** 00:16:44
+
+**Prompt:** @app/Http/Controllers/RequestRecordPanelController.php @resources/js/pages/request-record/RequestRecordPanel.vue Вызывай на фронте updateStatus, assign, startWork, finish c помощью axios. На фронте я получаю json. При каждом вызове из этих методов, обновляй список заявок, например, перезагружай страницу.
+
+**Actions:** (1) Added axios to package.json; created resources/js/lib/axios.ts with configured instance (Accept: application/json, XSRF cookie). (2) Controller: updateStatus, assign, startWork, finish return response()->json(['success' => true]). (3) RequestRecordPanel.vue: replaced Inertia router with api (axios); on success: showSuccess + router.reload({ preserveScroll: true }); on error: handleError shows Toast. (4) Updated RequestRecordPanelControllerTest for JSON response. Run npm install to add axios.
+
+---
+**Date:** 2026-02-23 **Time:** 00:52:00
+
+**Prompt:** отключи регистрацию пользователя, но их файлы удалять НЕ НУЖНО.
+
+**Actions:** Disabled registration in config/fortify.php by commenting out Features::registration(). Fortify no longer registers /register and POST /register routes; canRegister stays false via Features::enabled(), so Login and Welcome hide the "Sign up" link. Kept all registration-related files (CreateNewUser, Register.vue, FortifyServiceProvider::registerView, etc.). Updated RegistrationTest to assert 404 when registration is disabled, with skip when enabled. Ran Pint.
+
+---
+**Date:** 2026-02-23 **Time:** 01:15:00
+
+**Prompt:** docker exec -i repair_service_app npm run build реши ошибку.
+
+**Actions:** Fixed npm build error caused by registration being disabled—Wayfinder no longer generates register routes, so imports from @/routes and @/routes/register failed. (1) Login.vue: removed register import, use route('register') from ziggy. (2) Welcome.vue: same. (3) Register.vue: removed store import from @/routes/register, use Form with :action="route('register.store')" and method="post". (4) Added register and register.store to ziggy.d.ts for TypeScript. Build succeeds.
+
+---
+**Date:** 2026-02-23 **Time:** 01:56:12
+
+**Prompt:** @app/Http/Middleware/EnsureMasterCanFinish.php здесь мастер может изменить статус на done, если раньше был in_progress. @app/Http/Middleware/EnsureMasterCanStartWork.php здесь мастер может изменить статус на in_progress, если раньше был assigned.
+
+**Actions:** Implemented authorization logic in both middleware. EnsureMasterCanStartWork: user must be master, request status Assigned, assigned_to must match user. EnsureMasterCanFinish: user must be master, request status InProgress, assigned_to must match user. Added resolveRequestRecord() for route param. Added inProgress() factory state. Updated test_start_work_returns_409 to test_start_work_returns_403_when_request_already_in_progress (middleware blocks before service). Added test_finish_succeeds_when_request_is_in_progress_for_master, test_finish_returns_403_when_request_is_not_in_progress, test_finish_returns_403_when_request_assigned_to_another_master. Ran Pint and tests.
+
+---
