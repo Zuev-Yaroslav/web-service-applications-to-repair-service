@@ -83,7 +83,7 @@ const getStatusColor = (status: string): string => {
         case 'new':
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
         case 'assigned':
-            return 'bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100';
+            return 'bg-purple-200 text-purple-900 dark:bg-purple-800 dark:text-purple-100';
         case 'in_progress':
             return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
         case 'done':
