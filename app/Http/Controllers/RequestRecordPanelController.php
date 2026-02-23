@@ -6,7 +6,7 @@ use App\Http\Requests\RequestRecord\AssignRequest;
 use App\Http\Requests\RequestRecord\UpdateStatusRequest;
 use App\Models\RequestRecord;
 use App\Services\RequestRecordPanel\RequestRecordPanelService;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,31 +24,36 @@ class RequestRecordPanelController extends Controller
         return Inertia::render('request-record/RequestRecordPanel', $data);
     }
 
-    public function updateStatus(UpdateStatusRequest $request, RequestRecord $requestRecord): RedirectResponse
+    public function updateStatus(UpdateStatusRequest $request, RequestRecord $requestRecord): JsonResponse
     {
         $this->requestRecordPanelService->updateStatus($request, $requestRecord);
 
-        return back();
+        return response()->json(['success' => true]);
     }
 
-    public function assign(AssignRequest $request, RequestRecord $requestRecord): RedirectResponse
+    public function assign(AssignRequest $request, RequestRecord $requestRecord): JsonResponse
     {
         $this->requestRecordPanelService->assign($request, $requestRecord);
 
-        return back();
+        return response()->json(['success' => true]);
     }
 
-    public function startWork(Request $request, RequestRecord $requestRecord): RedirectResponse
+    public function startWork(Request $request, RequestRecord $requestRecord): JsonResponse
     {
-        $this->requestRecordPanelService->startWork($request, $requestRecord);
+        if (! $this->requestRecordPanelService->startWork($request, $requestRecord)) {
+            return response()->json(
+                ['message' => 'Request already taken or no longer assigned to you.'],
+                409
+            );
+        }
 
-        return back()->with('status', 'Work started');
+        return response()->json(['success' => true]);
     }
 
-    public function finish(Request $request, RequestRecord $requestRecord): RedirectResponse
+    public function finish(Request $request, RequestRecord $requestRecord): JsonResponse
     {
         $this->requestRecordPanelService->finish($request, $requestRecord);
 
-        return back()->with('status', 'Request finished');
+        return response()->json(['success' => true]);
     }
 }

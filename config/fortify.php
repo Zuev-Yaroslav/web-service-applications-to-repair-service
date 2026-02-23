@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/request-record-panel',
 
     /*
     |--------------------------------------------------------------------------
@@ -144,7 +144,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // disabled
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

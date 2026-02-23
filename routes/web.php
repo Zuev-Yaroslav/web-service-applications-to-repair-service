@@ -12,10 +12,6 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::get('request-record/create', [RequestRecordController::class, 'create'])
     ->name('request-record.create');
 Route::post('request-record', [RequestRecordController::class, 'store'])

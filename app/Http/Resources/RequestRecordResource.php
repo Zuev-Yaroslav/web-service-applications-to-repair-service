@@ -14,6 +14,17 @@ class RequestRecordResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'client_name' => $this->client_name,
+            'phone' => $this->phone,
+            'address' => $this->address,
+            'problem_text' => $this->problem_text,
+            'status' => $this->status,
+            'assigned_to' => $this->assigned_to,
+            'assigned_to_user' => $this->assignedTo,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 }

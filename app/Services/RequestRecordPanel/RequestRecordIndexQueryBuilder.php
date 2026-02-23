@@ -12,6 +12,12 @@ use Illuminate\Support\Collection;
 
 class RequestRecordIndexQueryBuilder
 {
+    private const MASTER_ALLOWED_STATUSES = [
+        RequestRecordStatus::Assigned,
+        RequestRecordStatus::InProgress,
+        RequestRecordStatus::Done,
+    ];
+
     public function build(Request $request, string $role): Builder
     {
         $query = RequestRecord::query()->with(['assignedTo']);
@@ -21,10 +27,15 @@ class RequestRecordIndexQueryBuilder
         } elseif ($role === 'master') {
             $user = $request->user();
             $query->where('assigned_to', $user->id)
-                ->whereIn('status', [RequestRecordStatus::Assigned, RequestRecordStatus::InProgress]);
+                ->whereIn('status', self::MASTER_ALLOWED_STATUSES);
+
+            $status = RequestRecordStatus::tryFrom((string) $request->get('status'));
+            if ($status !== null && in_array($status, self::MASTER_ALLOWED_STATUSES, true)) {
+                $query->where('status', $status);
+            }
         }
 
-        return $query->latest();
+        return $query->latest('created_at')->latest('id');
     }
 
     /**

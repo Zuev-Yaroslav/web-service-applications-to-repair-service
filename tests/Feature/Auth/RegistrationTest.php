@@ -3,29 +3,37 @@
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Fortify\Features;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered()
+    public function test_registration_screen_returns_404_when_registration_disabled()
     {
-        $response = $this->get(route('register'));
+        if (Features::enabled(Features::registration())) {
+            $this->markTestSkipped('Registration is enabled');
+        }
 
-        $response->assertOk();
+        $response = $this->get('/register');
+
+        $response->assertNotFound();
     }
 
-    public function test_new_users_can_register()
+    public function test_registration_post_returns_404_when_registration_disabled()
     {
-        $response = $this->post(route('register.store'), [
+        if (Features::enabled(Features::registration())) {
+            $this->markTestSkipped('Registration is enabled');
+        }
+
+        $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertNotFound();
     }
 }
