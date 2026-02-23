@@ -22,9 +22,6 @@ RUN apt-get update && apt-get install -y \
 
 COPY ./_docker/app/php.ini /usr/local/etc/php/conf.d/php.ini
 
-COPY _docker/deploy.sh /var/www/_docker/deploy.sh
-RUN chmod +x /var/www/_docker/deploy.sh
-
 # Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
