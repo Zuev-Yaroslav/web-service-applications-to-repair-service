@@ -21,7 +21,6 @@ services:
       - db
     ports:
       - "${VITE_PORT}:${VITE_PORT}"
-    entrypoint: _docker/deploy.sh
   db:
     image: postgres:18
     restart: always

@@ -252,10 +252,17 @@ test time log
 **Actions:** Fixed npm build error caused by registration being disabled—Wayfinder no longer generates register routes, so imports from @/routes and @/routes/register failed. (1) Login.vue: removed register import, use route('register') from ziggy. (2) Welcome.vue: same. (3) Register.vue: removed store import from @/routes/register, use Form with :action="route('register.store')" and method="post". (4) Added register and register.store to ziggy.d.ts for TypeScript. Build succeeds.
 
 ---
-**Date:** 2026-02-23 **Time:** 01:56:12
+**Date:** 2026-02-23 **Time:** 02:12:10
 
 **Prompt:** @app/Http/Middleware/EnsureMasterCanFinish.php здесь мастер может изменить статус на done, если раньше был in_progress. @app/Http/Middleware/EnsureMasterCanStartWork.php здесь мастер может изменить статус на in_progress, если раньше был assigned.
 
 **Actions:** Implemented authorization logic in both middleware. EnsureMasterCanStartWork: user must be master, request status Assigned, assigned_to must match user. EnsureMasterCanFinish: user must be master, request status InProgress, assigned_to must match user. Added resolveRequestRecord() for route param. Added inProgress() factory state. Updated test_start_work_returns_409 to test_start_work_returns_403_when_request_already_in_progress (middleware blocks before service). Added test_finish_succeeds_when_request_is_in_progress_for_master, test_finish_returns_403_when_request_is_not_in_progress, test_finish_returns_403_when_request_assigned_to_another_master. Ran Pint and tests.
+
+---
+**Date:** 2026-02-23 **Time:** 02:42:12
+
+**Prompt:** Изучи проект, и напиши ключевые решения на русском в @DECISIONS.md 5-7 пунктов. Ключевые решения (DECISIONS.md) — это краткое обоснование того, почему ты сделал именно так, а не иначе.
+
+**Actions:** Проанализировал структуру проекта (контроллеры, сервисы, фильтры, модели, middleware, ресурсы, Form Requests). Написал 7 ключевых архитектурных решений в DECISIONS.md на русском: (1) сервисный слой вместо толстых контроллеров, (2) API Resources для вывода моделей, (3) фильтрация через AbstractFilter + HasFilter, (4) Form Request для валидации, (5) middleware для проверки переходов статусов, (6) enum для статусов заявок, (7) ролевая модель через отдельную сущность Role.
 
 ---
